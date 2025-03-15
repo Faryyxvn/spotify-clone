@@ -6,18 +6,17 @@
         "use": "@vercel/node" 
       },
       {
-            "src": "frontend/package.json",
-            "use": "@vercel/static-build",
-            "config": {
-                "distDir": "dist",
-                "buildCommand": "npm run build"
+        "src": "frontend/package.json",
+        "use": "@vercel/static-build",
+        "config": {
+          "distDir": "frontend/dist"
         }
       }
     ],
     "routes": [
       { 
         "src": "/api/(.*)", 
-        "dest": "/backend/src/index.js" 
+        "dest": "backend/src/index.js" 
       },
       { 
         "src": "/(.*\\.(js|css|png|jpg|jpeg|svg|ico|json|mp3))", 
