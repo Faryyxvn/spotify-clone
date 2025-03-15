@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import SectionGrid from "./components/SectionGrid";
 import { usePlayerStore } from "@/stores/usePlayerStore";
 
+
 const HomePage = () => {
 	const {
 		fetchFeaturedSongs,
