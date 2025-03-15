@@ -7,9 +7,6 @@ import cors from "cors";
 import fs from "fs";
 import { createServer } from "http";
 import cron from "node-cron";
-import fs from "fs";
-import path from "path";	
-import mongoose from "mongoose";
 
 import { initializeSocket } from "./lib/socket.js";
 
@@ -37,6 +34,19 @@ app.use(
 	})
 );
 
+app.use(express.json()); // to parse req.body
+app.use(clerkMiddleware()); // this will add auth to req obj => req.auth
+app.use(
+	fileUpload({
+		useTempFiles: true,
+		tempFileDir: path.join(__dirname, "tmp"),
+		createParentPath: true,
+		limits: {
+			fileSize: 10 * 1024 * 1024, // 10MB  max file size
+		},
+	})
+);
+
 // cron jobs
 const tempDir = path.join(process.cwd(), "tmp");
 cron.schedule("0 * * * *", () => {
@@ -52,21 +62,6 @@ cron.schedule("0 * * * *", () => {
 		});
 	}
 });
-
-app.use(express.json()); // to parse req.body
-app.use(clerkMiddleware()); // this will add auth to req obj => req.auth
-app.use(
-	fileUpload({
-	  useTempFiles: true,
-	  tempFileDir: tempDir,
-	  createParentPath: true,
-	  limits: {
-		fileSize: 10 * 1024 * 1024, // 10MB max file size
-	  },
-	})
-  );
-
-
 
 app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);
@@ -84,22 +79,10 @@ if (process.env.NODE_ENV === "production") {
 
 // error handler
 app.use((err, req, res, next) => {
-  console.error('Error:', err);
-  res.status(500).json({ 
-    message: process.env.NODE_ENV === "production" ? "Internal server error" : err.message,
-    stack: process.env.NODE_ENV === "production" ? null : err.stack 
-  });
+	res.status(500).json({ message: process.env.NODE_ENV === "production" ? "Internal server error" : err.message });
 });
 
 httpServer.listen(PORT, () => {
 	console.log("Server is running on port " + PORT);
 	connectDB();
 });
-
-app.get('/api/status', (req, res) => {
-	res.json({
-	  server: 'online',
-	  database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-	  env: process.env.NODE_ENV
-	});
-  });
