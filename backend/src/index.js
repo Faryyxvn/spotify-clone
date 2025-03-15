@@ -7,6 +7,9 @@ import cors from "cors";
 import fs from "fs";
 import { createServer } from "http";
 import cron from "node-cron";
+import fs from "fs";
+import path from "path";	
+import mongoose from "mongoose";
 
 import { initializeSocket } from "./lib/socket.js";
 
@@ -29,23 +32,8 @@ initializeSocket(httpServer);
 
 app.use(
 	cors({
-	  origin: process.env.NODE_ENV === "production" 
-		? [process.env.VERCEL_URL, "https://your-custom-domain.com"] 
-		: "http://localhost:3000",
-	  credentials: true,
-	})
-  );
-  
-app.use(express.json()); // to parse req.body
-app.use(clerkMiddleware()); // this will add auth to req obj => req.auth
-app.use(
-	fileUpload({
-		useTempFiles: true,
-		tempFileDir: path.join(__dirname, "tmp"),
-		createParentPath: true,
-		limits: {
-			fileSize: 10 * 1024 * 1024, // 10MB  max file size
-		},
+		origin: "http://localhost:3000",
+		credentials: true,
 	})
 );
 
@@ -65,6 +53,21 @@ cron.schedule("0 * * * *", () => {
 	}
 });
 
+app.use(express.json()); // to parse req.body
+app.use(clerkMiddleware()); // this will add auth to req obj => req.auth
+app.use(
+	fileUpload({
+	  useTempFiles: true,
+	  tempFileDir: tempDir,
+	  createParentPath: true,
+	  limits: {
+		fileSize: 10 * 1024 * 1024, // 10MB max file size
+	  },
+	})
+  );
+
+
+
 app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/auth", authRoutes);
@@ -73,19 +76,30 @@ app.use("/api/albums", albumRoutes);
 app.use("/api/stats", statRoutes);
 
 if (process.env.NODE_ENV === "production") {
-	const frontendDistPath = path.join(__dirname, "../../frontend/dist");
-	app.use(express.static(frontendDistPath));
+	app.use(express.static(path.join(__dirname, "../frontend/dist")));
 	app.get("*", (req, res) => {
-	  res.sendFile(path.join(frontendDistPath, "index.html"));
+		res.sendFile(path.resolve(__dirname, "../frontend", "dist", "index.html"));
 	});
-  }
-  
+}
+
 // error handler
 app.use((err, req, res, next) => {
-	res.status(500).json({ message: process.env.NODE_ENV === "production" ? "Internal server error" : err.message });
+  console.error('Error:', err);
+  res.status(500).json({ 
+    message: process.env.NODE_ENV === "production" ? "Internal server error" : err.message,
+    stack: process.env.NODE_ENV === "production" ? null : err.stack 
+  });
 });
 
 httpServer.listen(PORT, () => {
 	console.log("Server is running on port " + PORT);
 	connectDB();
 });
+
+app.get('/api/status', (req, res) => {
+	res.json({
+	  server: 'online',
+	  database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+	  env: process.env.NODE_ENV
+	});
+  });
