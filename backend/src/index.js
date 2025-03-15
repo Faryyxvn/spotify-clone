@@ -29,11 +29,13 @@ initializeSocket(httpServer);
 
 app.use(
 	cors({
-		origin: "http://localhost:3000",
-		credentials: true,
+	  origin: process.env.NODE_ENV === "production" 
+		? [process.env.VERCEL_URL, "https://your-custom-domain.com"] 
+		: "http://localhost:3000",
+	  credentials: true,
 	})
-);
-
+  );
+  
 app.use(express.json()); // to parse req.body
 app.use(clerkMiddleware()); // this will add auth to req obj => req.auth
 app.use(
@@ -71,12 +73,13 @@ app.use("/api/albums", albumRoutes);
 app.use("/api/stats", statRoutes);
 
 if (process.env.NODE_ENV === "production") {
-	app.use(express.static(path.join(__dirname, "../frontend/dist")));
+	const frontendDistPath = path.join(__dirname, "../../frontend/dist");
+	app.use(express.static(frontendDistPath));
 	app.get("*", (req, res) => {
-		res.sendFile(path.resolve(__dirname, "../frontend", "dist", "index.html"));
+	  res.sendFile(path.join(frontendDistPath, "index.html"));
 	});
-}
-
+  }
+  
 // error handler
 app.use((err, req, res, next) => {
 	res.status(500).json({ message: process.env.NODE_ENV === "production" ? "Internal server error" : err.message });
