@@ -2,10 +2,11 @@
 	"name": "backend",
 	"version": "1.0.0",
 	"description": "",
-	"main": "index.js",
+	"main": "src/index.js",
 	"scripts": {
 		"dev": "nodemon src/index.js",
 		"start": "node src/index.js",
+		"build": "npm install",
 		"seed:songs": "node src/seeds/songs.js",
 		"seed:albums": "node src/seeds/albums.js"
 	},
@@ -15,6 +16,7 @@
 	"license": "ISC",
 	"dependencies": {
 		"@clerk/express": "^1.3.4",
+		"@vercel/node": "^4.1.3",
 		"cloudinary": "^2.5.1",
 		"cors": "^2.8.5",
 		"dotenv": "^16.4.5",
