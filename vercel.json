@@ -21,7 +21,7 @@
       },
       { 
         "src": "/(.*\\.(js|css|png|jpg|jpeg|svg|ico|json|mp3))", 
-        "dest": "frontend/dist/$1" 
+        "dest": "frontend/dist/" 
       },
       { 
         "src": "/(.*)", 
