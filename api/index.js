@@ -35,17 +35,22 @@ app.use(fileUpload({
 }));
 app.use(ClerkExpressWithAuth());
 
-// Connect to MongoDB
+// Modify your connectDB function in api/index.js
 const connectDB = async () => {
-  try {
-    await mongoose.connect(process.env.MONGODB_URI);
-    console.log('Connected to MongoDB');
-  } catch (error) {
-    console.log('Failed to connect to MongoDB', error);
-    return;
-  }
-};
-
+    try {
+      // Only connect if we're not already connected
+      if (mongoose.connection.readyState !== 1) {
+        await mongoose.connect(process.env.MONGODB_URI, {
+          serverSelectionTimeoutMS: 5000,
+          maxPoolSize: 10
+        });
+        console.log('Connected to MongoDB');
+      }
+    } catch (error) {
+      console.log('Failed to connect to MongoDB', error);
+      return;
+    }
+  };
 // Routes
 // Auth routes
 app.post('/api/auth/callback', authController.authCallback);
