@@ -1,26 +1,27 @@
+// api/index.js - Updated version
 import express from 'express';
 import cors from 'cors';
 import fileUpload from 'express-fileupload';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
-import { clerkClient, ClerkExpressWithAuth } from '@clerk/express';
+import { clerkClient, ClerkExpressWithAuth } from '@clerk/clerk-express';
 
-// Import your models
-import { User } from '../backend/src/models/user.model.js';
-import { Song } from '../backend/src/models/song.model.js';
-import { Album } from '../backend/src/models/album.model.js';
-import { Message } from '../backend/src/models/message.model.js';
+// Import models directly (fixed paths)
+import { User } from './models/user.model.js';
+import { Song } from './models/song.model.js';
+import { Album } from './models/album.model.js';
+import { Message } from './models/message.model.js';
 
-// Import controllers
-import * as songController from '../backend/src/controller/song.controller.js';
-import * as albumController from '../backend/src/controller/album.controller.js';
-import * as adminController from '../backend/src/controller/admin.controller.js';
-import * as authController from '../backend/src/controller/auth.controller.js';
-import * as userController from '../backend/src/controller/user.controller.js';
-import * as statController from '../backend/src/controller/stat.controller.js';
+// Import controllers (fixed paths)
+import * as songController from './controller/song.controller.js';
+import * as albumController from './controller/album.controller.js';
+import * as adminController from './controller/admin.controller.js';
+import * as authController from './controller/auth.controller.js';
+import * as userController from './controller/user.controller.js';
+import * as statController from './controller/stat.controller.js';
 
 // Import middlewares
-import { protectRoute, requireAdmin } from '../backend/src/middleware/auth.middleware.js';
+import { protectRoute, requireAdmin } from './middleware/auth.middleware.js';
 
 dotenv.config();
 
@@ -35,22 +36,34 @@ app.use(fileUpload({
 }));
 app.use(ClerkExpressWithAuth());
 
-// Modify your connectDB function in api/index.js
+// Improved MongoDB connection
 const connectDB = async () => {
-    try {
-      // Only connect if we're not already connected
-      if (mongoose.connection.readyState !== 1) {
-        await mongoose.connect(process.env.MONGODB_URI, {
-          serverSelectionTimeoutMS: 5000,
-          maxPoolSize: 10
-        });
-        console.log('Connected to MongoDB');
-      }
-    } catch (error) {
-      console.log('Failed to connect to MongoDB', error);
-      return;
+  try {
+    if (mongoose.connection.readyState !== 1) {
+      await mongoose.connect(process.env.MONGODB_URI, {
+        serverSelectionTimeoutMS: 5000,
+        maxPoolSize: 10
+      });
+      console.log('Connected to MongoDB');
     }
-  };
+  } catch (error) {
+    console.error('Failed to connect to MongoDB', error);
+  }
+  // Inside connectDB function
+try {
+    if (mongoose.connection.readyState !== 1) {
+      await mongoose.connect(process.env.MONGODB_URI, {
+        serverSelectionTimeoutMS: 5000,
+        maxPoolSize: 10
+      });
+      console.log('Connected to MongoDB');
+    }
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    // Don't exit process in serverless environment
+  }
+};
+
 // Routes
 // Auth routes
 app.post('/api/auth/callback', authController.authCallback);
@@ -84,7 +97,27 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-// Connect to database
+// Handle static files for production
+if (process.env.NODE_ENV === 'production') {
+  const path = require('path');
+  // Serve static files from the frontend build directory
+  app.use(express.static(path.join(process.cwd(), 'frontend/dist')));
+  
+  // For any request that doesn't match one above, send back the index.html file
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(process.cwd(), 'frontend/dist/index.html'));
+  });
+}
+
+// Error handler
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({ 
+    message: process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message 
+  });
+});
+
+// Connect to database before handling requests
 connectDB();
 
 export default app;
