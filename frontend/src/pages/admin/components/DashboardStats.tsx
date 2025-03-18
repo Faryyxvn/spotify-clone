@@ -3,7 +3,7 @@ import { Library, ListMusic, PlayCircle, Users2 } from "lucide-react";
 import StatsCard from "./StatsCard";
 
 const DashboardStats = () => {
-	const { stats } = useMusicStore();
+	const { stats, playStats } = useMusicStore();
 
 	const statsData = [
 		{
@@ -33,6 +33,20 @@ const DashboardStats = () => {
 			value: stats.totalUsers.toLocaleString(),
 			bgColor: "bg-sky-500/10",
 			iconColor: "text-sky-500",
+		},
+		{
+			icon: PlayCircle,
+			label: "Total Plays",
+			value: playStats?.totalPlaysStats.totalPlays.toLocaleString() || "0",
+			bgColor: "bg-sky-500/10",
+			iconColor: "text-sky-500",
+		},
+		{
+			icon: PlayCircle,
+			label: "Weekly Plays",
+			value: playStats?.totalPlaysStats?.weeklyPlays.toLocaleString() || "0",
+			bgColor: "bg-pink-500/10",
+			iconColor: "text-pink-500",
 		},
 	];
 

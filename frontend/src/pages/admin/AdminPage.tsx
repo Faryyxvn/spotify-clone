@@ -1,23 +1,25 @@
 import { useAuthStore } from "@/stores/useAuthStore";
 import Header from "./components/Header";
 import DashboardStats from "./components/DashboardStats";
-import { Album, Music } from "lucide-react";
+import { Album, BarChart3, Music } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SongsTabContent from "./components/SongsTabContent";
 import AlbumsTabContent from "./components/AlbumsTabContent";
+import PlayStatsTabContent from "./components/PlayStatsTabContent";
 import { useEffect } from "react";
 import { useMusicStore } from "@/stores/useMusicStore";
 
 const AdminPage = () => {
 	const { isAdmin, isLoading } = useAuthStore();
 
-	const { fetchAlbums, fetchSongs, fetchStats } = useMusicStore();
+	const { fetchAlbums, fetchSongs, fetchStats, fetchPlayStats } = useMusicStore();
 
 	useEffect(() => {
 		fetchAlbums();
 		fetchSongs();
 		fetchStats();
-	}, [fetchAlbums, fetchSongs, fetchStats]);
+		fetchPlayStats();
+	}, [fetchAlbums, fetchSongs, fetchStats, fetchPlayStats]);
 
 	if (!isAdmin && !isLoading) return <div>Unauthorized</div>;
 
@@ -40,6 +42,10 @@ const AdminPage = () => {
 						<Album className='mr-2 size-4' />
 						Albums
 					</TabsTrigger>
+					<TabsTrigger value='play-stats' className='data-[state=active]:bg-zinc-700'>
+						<BarChart3 className='mr-2 size-4' />
+						Play Stats
+					</TabsTrigger>
 				</TabsList>
 
 				<TabsContent value='songs'>
@@ -47,6 +53,9 @@ const AdminPage = () => {
 				</TabsContent>
 				<TabsContent value='albums'>
 					<AlbumsTabContent />
+				</TabsContent>
+				<TabsContent value='play-stats'>
+					<PlayStatsTabContent />
 				</TabsContent>
 			</Tabs>
 		</div>

@@ -17,6 +17,7 @@ import authRoutes from "./routes/auth.route.js";
 import songRoutes from "./routes/song.route.js";
 import albumRoutes from "./routes/album.route.js";
 import statRoutes from "./routes/stat.route.js";
+import playStatsRoutes from "./routes/play-stats.route.js";
 
 dotenv.config();
 
@@ -39,10 +40,10 @@ app.use(clerkMiddleware()); // this will add auth to req obj => req.auth
 app.use(
 	fileUpload({
 		useTempFiles: true,
-		tempFileDir: path.join(__dirname, "../tmp"), // Correct path to backend/tmp
+		tempFileDir: path.join(__dirname, "tmp"),
 		createParentPath: true,
 		limits: {
-			fileSize: 50 * 1024 * 1024, // Increase to 50MB for audio files
+			fileSize: 10 * 1024 * 1024, // 10MB  max file size
 		},
 	})
 );
@@ -63,12 +64,61 @@ cron.schedule("0 * * * *", () => {
 	}
 });
 
+// Add cron job to reset weekly plays every Monday at 00:00
+cron.schedule("0 0 * * 1", async () => {
+  try {
+    const result = await fetch(`http://localhost:${PORT}/api/admin/reset-stats`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ period: 'weekly' })
+    });
+    console.log('Weekly play stats reset successfully');
+  } catch (error) {
+    console.error('Failed to reset weekly play stats:', error);
+  }
+});
+
+// Add cron job to reset monthly plays on the 1st of each month at 00:00
+cron.schedule("0 0 1 * *", async () => {
+  try {
+    const result = await fetch(`http://localhost:${PORT}/api/admin/reset-stats`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ period: 'monthly' })
+    });
+    console.log('Monthly play stats reset successfully');
+  } catch (error) {
+    console.error('Failed to reset monthly play stats:', error);
+  }
+});
+
+// Add cron job to reset yearly plays on January 1st at 00:00
+cron.schedule("0 0 1 1 *", async () => {
+  try {
+    const result = await fetch(`http://localhost:${PORT}/api/admin/reset-stats`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ period: 'yearly' })
+    });
+    console.log('Yearly play stats reset successfully');
+  } catch (error) {
+    console.error('Failed to reset yearly play stats:', error);
+  }
+});
+
 app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/songs", songRoutes);
 app.use("/api/albums", albumRoutes);
 app.use("/api/stats", statRoutes);
+app.use("/api/admin", playStatsRoutes);
 
 if (process.env.NODE_ENV === "production") {
 	app.use(express.static(path.join(__dirname, "../frontend/dist")));
