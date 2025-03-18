@@ -39,10 +39,10 @@ app.use(clerkMiddleware()); // this will add auth to req obj => req.auth
 app.use(
 	fileUpload({
 		useTempFiles: true,
-		tempFileDir: path.join(__dirname, "tmp"),
+		tempFileDir: path.join(__dirname, "../tmp"), // Correct path to backend/tmp
 		createParentPath: true,
 		limits: {
-			fileSize: 10 * 1024 * 1024, // 10MB  max file size
+			fileSize: 50 * 1024 * 1024, // Increase to 50MB for audio files
 		},
 	})
 );

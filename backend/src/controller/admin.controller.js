@@ -7,6 +7,7 @@ const uploadToCloudinary = async (file) => {
 	try {
 		const result = await cloudinary.uploader.upload(file.tempFilePath, {
 			resource_type: "auto",
+			timeout: 60000 // 60 second timeout
 		});
 		return result.secure_url;
 	} catch (error) {
