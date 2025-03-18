@@ -1,12 +1,17 @@
 {
-    "version": 2,
-    "buildCommand": "cd backend && npm install && npm run build && cd ../frontend && npm install && npm run build",
-    "outputDirectory": "frontend/dist",
-    "framework": "vite",
-    "rewrites": [
-      {
-        "source": "/api/(.*)",
-        "destination": "backend/dist/server.js"
-      }
-    ]
+  "version": 2,
+  "buildCommand": "cd backend && npm install && npm run build && cd ../frontend && npm install && npm run build",
+  "outputDirectory": "frontend/dist",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/server.js"
+    }
+  ],
+  "functions": {
+    "api/server.js": {
+      "runtime": "nodejs18.x"
+    }
+  }
 }
